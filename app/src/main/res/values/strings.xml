@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">SearchMovieApp</string>
+    <string name="what_film">Jakiego filmu szukasz?</string>
 </resources>
