@@ -7,6 +7,7 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Collections;
 
 import nucleus.factory.RequiresPresenter;
 import nucleus.presenter.Presenter;
@@ -19,25 +20,26 @@ import nucleus.presenter.Presenter;
 public class ListingPresenter extends Presenter<ListingActivity> {
 
     public void getDataAnsync(String title){        //osobny watek do przetwarzania danych
-        new Thread(){
+        new Thread(){                               //requesty sieciowe nie moga byc odpalane na wątku głónym!!!!
             @Override
             public void run() {
                 try {
                     String result = getData(title);
                     SearchResult searchResult = new Gson().fromJson(result,SearchResult.class); //metoda ktora przetwarza json na model przez nas stwotrzony
-                    getView().setDataOnUiThread(searchResult);
+                    getView().setDataOnUiThread(searchResult, false);
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    getView().setDataOnUiThread(null, true);
                 }
             }
         }.start();
 
     }
 
-    public String getData (String title) throws IOException {
+    public String getData (String title) throws IOException {       //pobiera dane z internetu
         String stringUrl = "http://www.omdbapi.com/?s=" + title;
         URL url = new URL(stringUrl);
         HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+        urlConnection.setConnectTimeout(3000);
         InputStream inputStream = urlConnection.getInputStream();
 
         return convertStreamToString(inputStream);
