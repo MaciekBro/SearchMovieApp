@@ -25,7 +25,7 @@ public class ListingPresenter extends Presenter<ListingActivity> {
 
     private Retrofit retrofit;
 
-    public ListingPresenter () {            //pobieranie informacji z sieci
+    public ListingPresenter() {            //pobieranie informacji z sieci
         retrofit = new Retrofit.Builder()
                 .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
                 .addConverterFactory(GsonConverterFactory.create())
@@ -33,8 +33,12 @@ public class ListingPresenter extends Presenter<ListingActivity> {
                 .build();
     }
 
-    public Observable<SearchResult> getDataAnsync(String title){
-        return retrofit.create(SearchService.class).search(title);      //search to nasza metoda z interface SearchService
+    public Observable<SearchResult> getDataAnsync(String title, int year, String type) {
+
+        String stringYear = year == ListingActivity.NO_YEAR_SELECTED ? null : String.valueOf(year); //zmieniamy typ roku
+
+        return retrofit.create(SearchService.class).search(title,                   //search to nasza metoda z interface SearchService
+                stringYear, type);
     }
 
     //wszystko co mielismy poniżej moglismy uprościć za pomocą RETRO FIT!!!!!!

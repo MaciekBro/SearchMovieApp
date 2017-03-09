@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.Toast;
@@ -33,6 +34,9 @@ public class ListingActivity extends NucleusAppCompatActivity<ListingPresenter> 
 
     private static final String SEARCH_TITLE = "search_title";    //do przechowywania wpisanego tekstu
     private MoviesListAdapter adapter;
+    private static final String SEARCH_YEAR = "search_year";
+    public static final int NO_YEAR_SELECTED = -1;
+    public static final String SEARCH_TYPE  = "search_type";
 
     @BindView(R.id.view_flipper)
     ViewFlipper viewFlipper;
@@ -42,6 +46,9 @@ public class ListingActivity extends NucleusAppCompatActivity<ListingPresenter> 
 
     @BindView(R.id.recycler_view)
     RecyclerView recyclerView;
+
+    @BindView(R.id.no_result)
+    FrameLayout noResultLayout;
 
 //    private ViewFlipper viewFlipper;      //butterknife nie dziala na polach prywatnych
 //    private ImageView noInternetImage;
@@ -55,6 +62,9 @@ public class ListingActivity extends NucleusAppCompatActivity<ListingPresenter> 
 
         ButterKnife.bind(this); //binduje nasze powiazania nie potrzebujemy ich pozniej
 
+        int year = getIntent().getIntExtra(SEARCH_YEAR, NO_YEAR_SELECTED);
+        String type = getIntent().getStringExtra(SEARCH_TYPE);
+
 //        viewFlipper = (ViewFlipper) findViewById(R.id.view_flipper);
 //        noInternetImage = (ImageView) findViewById(R.id.no_internet_image_view);
 //        recyclerView = (RecyclerView) findViewById(R.id.recycler_view);
@@ -63,7 +73,7 @@ public class ListingActivity extends NucleusAppCompatActivity<ListingPresenter> 
         adapter = new MoviesListAdapter();
         recyclerView.setAdapter(adapter);
 
-        getPresenter().getDataAnsync(title)   //getPresenter zwraca prezentaera którego wczesniej definiowalismy
+        getPresenter().getDataAnsync(title,year , type)   //getPresenter zwraca prezentaera którego wczesniej definiowalismy
                 .subscribeOn(io())       //to co jest  powyżej jest wykonane w innym wątku
                 .observeOn(mainThread())  //to co bedzie wykonywane w głównym wątku
                 .subscribe(this::success, this::error);     //pierwszy metr jest pozytywny, drugi odpowiada za bledy
@@ -103,20 +113,30 @@ public class ListingActivity extends NucleusAppCompatActivity<ListingPresenter> 
     }
 
     private void success(SearchResult searchResult) {
-        viewFlipper.setDisplayedChild(viewFlipper.indexOfChild(recyclerView));
-        adapter.setItems(searchResult.getItems());
+        if ("false".equalsIgnoreCase(searchResult.getResponse())) {          //robimy tak z false bo wiemy ze nie przyjdzie nam null           //ignorujemy wielkosc litery
+
+            viewFlipper.setDisplayedChild(viewFlipper.indexOfChild(noResultLayout));
+
+        }else {
+
+            viewFlipper.setDisplayedChild(viewFlipper.indexOfChild(recyclerView));
+            adapter.setItems(searchResult.getItems());
+        }
+
     }
 
 
-    public static Intent createIntent(Context context, String title) {  //inny psosób tworzenia intentów!!
+    public static Intent createIntent(Context context, String title, int year, String type) {  //inny psosób tworzenia intentów!!
         Intent intent = new Intent(context, ListingActivity.class);    //wzorzec gdzie nie potrzebujesz pamietac jakich parametrow potrzebuje !!
         intent.putExtra(SEARCH_TITLE, title);
+        intent.putExtra(SEARCH_YEAR, year);
+        intent.putExtra(SEARCH_TYPE,type);
         return intent;
     }
 
 
     //    public void setDataOnUiThread(SearchResult result, boolean isProblemWithInternetConnection) { //
-//        runOnUiThread(() -> {                                           //jako ze jestesmy w aktywnosci to mozemy uzyc tej metody, inaczej musielibbysmy uzywać np. Handlera.
+//        runOnUiThread(() -> {                                           //jako ze jestesmy w aktywnosci to mozemy uzyc tej metody, inaczej musielibbysmy uzywać numberPicker. Handlera.
 //            if (isProblemWithInternetConnection) {
 ////                viewFlipper.setDisplayedChild(R.id.no_internet_image_view);       //tak nie mozna tego zrobic
 //                viewFlipper.setDisplayedChild(viewFlipper.indexOfChild(noInternetImage));
