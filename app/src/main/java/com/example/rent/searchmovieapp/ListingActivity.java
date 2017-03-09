@@ -6,6 +6,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.view.View;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.Toast;
@@ -14,6 +15,9 @@ import android.widget.ViewFlipper;
 
 import com.annimon.stream.Stream;
 
+import butterknife.BindView;
+import butterknife.ButterKnife;
+import butterknife.OnClick;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.functions.Consumer;
 import io.reactivex.schedulers.Schedulers;
@@ -29,9 +33,19 @@ public class ListingActivity extends NucleusAppCompatActivity<ListingPresenter> 
 
     private static final String SEARCH_TITLE = "search_title";    //do przechowywania wpisanego tekstu
     private MoviesListAdapter adapter;
-    private ViewFlipper viewFlipper;
-    private ImageView noInternetImage;
-    private RecyclerView recyclerView;
+
+    @BindView(R.id.view_flipper)
+    ViewFlipper viewFlipper;
+
+    @BindView(R.id.no_internet_image_view)
+    ImageView noInternetImage;
+
+    @BindView(R.id.recycler_view)
+    RecyclerView recyclerView;
+
+//    private ViewFlipper viewFlipper;      //butterknife nie dziala na polach prywatnych
+//    private ImageView noInternetImage;
+//    private RecyclerView recyclerView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,21 +53,26 @@ public class ListingActivity extends NucleusAppCompatActivity<ListingPresenter> 
         setContentView(R.layout.listing_activity);
         String title = getIntent().getStringExtra(SEARCH_TITLE); //wyciagamy tekst z intentu
 
-        recyclerView = (RecyclerView) findViewById(R.id.recycler_view);
+        ButterKnife.bind(this); //binduje nasze powiazania nie potrzebujemy ich pozniej
+
+//        viewFlipper = (ViewFlipper) findViewById(R.id.view_flipper);
+//        noInternetImage = (ImageView) findViewById(R.id.no_internet_image_view);
+//        recyclerView = (RecyclerView) findViewById(R.id.recycler_view);
+
 
         adapter = new MoviesListAdapter();
         recyclerView.setAdapter(adapter);
 
-        viewFlipper = (ViewFlipper) findViewById(R.id.view_flipper);
-        noInternetImage = (ImageView) findViewById(R.id.no_internet_image_view);
-
-        recyclerView = (RecyclerView) findViewById(R.id.recycler_view);
-
-
-        getPresenter().getDataAnsync(title)
+        getPresenter().getDataAnsync(title)   //getPresenter zwraca prezentaera którego wczesniej definiowalismy
                 .subscribeOn(io())       //to co jest  powyżej jest wykonane w innym wątku
                 .observeOn(mainThread())  //to co bedzie wykonywane w głównym wątku
-                .subscribe(this::success, this::error);
+                .subscribe(this::success, this::error);     //pierwszy metr jest pozytywny, drugi odpowiada za bledy
+
+        //subscibeOn uzywamy tylko raz
+        //observeOn uzywalmy do wielokrotnego przełączania wątków
+
+
+
 
 //        getPresenter().getDataAnsync(title)
 //                .subscribeOn(Schedulers.io())       //to co jest  powyżej jest wykonane w innym wątku
@@ -72,6 +91,12 @@ public class ListingActivity extends NucleusAppCompatActivity<ListingPresenter> 
 //
 //                });
     }
+
+    @OnClick(R.id.no_internet_image_view)
+    public void onNoInternetImageViewClick(View view){
+        Toast.makeText(this, "To nic nie da!", Toast.LENGTH_SHORT).show();
+    }
+
 
     private void error(Throwable throwable) {
         viewFlipper.setDisplayedChild(viewFlipper.indexOfChild(noInternetImage));

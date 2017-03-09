@@ -25,7 +25,7 @@ public class ListingPresenter extends Presenter<ListingActivity> {
 
     private Retrofit retrofit;
 
-    public ListingPresenter () {
+    public ListingPresenter () {            //pobieranie informacji z sieci
         retrofit = new Retrofit.Builder()
                 .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
                 .addConverterFactory(GsonConverterFactory.create())
@@ -34,7 +34,7 @@ public class ListingPresenter extends Presenter<ListingActivity> {
     }
 
     public Observable<SearchResult> getDataAnsync(String title){
-        return retrofit.create(SearchService.class).search(title);
+        return retrofit.create(SearchService.class).search(title);      //search to nasza metoda z interface SearchService
     }
 
     //wszystko co mielismy poniżej moglismy uprościć za pomocą RETRO FIT!!!!!!
