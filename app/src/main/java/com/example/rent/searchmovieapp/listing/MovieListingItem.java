@@ -1,4 +1,4 @@
-package com.example.rent.searchmovieapp;
+package com.example.rent.searchmovieapp.listing;
 
 import com.google.gson.annotations.SerializedName;
 

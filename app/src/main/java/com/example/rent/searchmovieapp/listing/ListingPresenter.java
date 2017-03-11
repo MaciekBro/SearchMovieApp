@@ -1,16 +1,9 @@
-package com.example.rent.searchmovieapp;
+package com.example.rent.searchmovieapp.listing;
 
-import com.google.gson.Gson;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.Collections;
+import com.example.rent.searchmovieapp.search.SearchResult;
+import com.example.rent.searchmovieapp.search.SearchService;
 
 import io.reactivex.Observable;
-import nucleus.factory.RequiresPresenter;
 import nucleus.presenter.Presenter;
 import retrofit2.Retrofit;
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
@@ -25,13 +18,15 @@ public class ListingPresenter extends Presenter<ListingActivity> {
 
     private Retrofit retrofit;
 
-    public ListingPresenter() {            //pobieranie informacji z sieci
-        retrofit = new Retrofit.Builder()
-                .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
-                .addConverterFactory(GsonConverterFactory.create())
-                .baseUrl("http://www.omdbapi.com")
-                .build();
-    }
+
+    //mozna wyrzucic bo dostarczamy rettrofita z aktywnosci
+//    public ListingPresenter() {            //pobieranie informacji z sieci
+//        retrofit = new Retrofit.Builder()
+//                .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
+//                .addConverterFactory(GsonConverterFactory.create())
+//                .baseUrl("http://www.omdbapi.com")
+//                .build();
+//    }
 
     public Observable<SearchResult> getDataAnsync(String title, int year, String type) {
 
@@ -39,6 +34,11 @@ public class ListingPresenter extends Presenter<ListingActivity> {
 
         return retrofit.create(SearchService.class).search(title,                   //search to nasza metoda z interface SearchService
                 stringYear, type);
+    }
+
+    public void setRetrofit(Retrofit retrofit) {
+        this.retrofit = retrofit;
+
     }
 
     //wszystko co mielismy poniżej moglismy uprościć za pomocą RETRO FIT!!!!!!

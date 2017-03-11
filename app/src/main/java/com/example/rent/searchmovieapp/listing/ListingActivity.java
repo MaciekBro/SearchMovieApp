@@ -1,27 +1,24 @@
-package com.example.rent.searchmovieapp;
+package com.example.rent.searchmovieapp.listing;
 
 import android.content.Context;
 import android.content.Intent;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
-import android.widget.ProgressBar;
 import android.widget.Toast;
 import android.widget.ViewFlipper;
 
 
-import com.annimon.stream.Stream;
+import com.example.rent.searchmovieapp.R;
+import com.example.rent.searchmovieapp.RetrofitProvider;
+import com.example.rent.searchmovieapp.search.SearchResult;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
-import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.functions.Consumer;
-import io.reactivex.schedulers.Schedulers;
 import nucleus.factory.RequiresPresenter;
 import nucleus.view.NucleusAppCompatActivity;
 
@@ -62,6 +59,11 @@ public class ListingActivity extends NucleusAppCompatActivity<ListingPresenter> 
 
         ButterKnife.bind(this); //binduje nasze powiazania nie potrzebujemy ich pozniej
 
+        if (savedInstanceState==null) { //jest nullem przy pierwszym uruchomieniu aplikacji, potem juz nie!!! wiemy z tego czy wchodzimy w aplikacje ktorys raz
+            RetrofitProvider retrofitProvider = (RetrofitProvider) getApplication();   //wiemy ze aplikacja jest RetrofitProviderem
+            getPresenter().setRetrofit(retrofitProvider.privideRetrofit());         //ustawiamy retrofita do prezentera
+        }
+
         int year = getIntent().getIntExtra(SEARCH_YEAR, NO_YEAR_SELECTED);
         String type = getIntent().getStringExtra(SEARCH_TYPE);
 
@@ -81,7 +83,10 @@ public class ListingActivity extends NucleusAppCompatActivity<ListingPresenter> 
         //subscibeOn uzywamy tylko raz
         //observeOn uzywalmy do wielokrotnego przełączania wątków
 
-
+//        RecyclerView.LayoutManager layoutManager
+//        DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(recyclerView.getContext(),
+//                layoutManager.getOrientation());
+//        recyclerView.addItemDecoration(dividerItemDecoration);
 
 
 //        getPresenter().getDataAnsync(title)
