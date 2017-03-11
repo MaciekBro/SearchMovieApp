@@ -12,6 +12,9 @@ import android.widget.ImageButton;
 import android.widget.NumberPicker;
 import android.widget.RadioGroup;
 
+import com.azoft.carousellayoutmanager.CarouselLayoutManager;
+import com.azoft.carousellayoutmanager.CarouselZoomPostLayoutListener;
+import com.azoft.carousellayoutmanager.CenterScrollListener;
 import com.example.rent.searchmovieapp.R;
 import com.example.rent.searchmovieapp.RetrofitProvider;
 import com.example.rent.searchmovieapp.listing.ListingActivity;
@@ -19,6 +22,7 @@ import com.example.rent.searchmovieapp.listing.MovieListingItem;
 
 import java.util.Calendar;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import butterknife.BindView;
@@ -26,7 +30,10 @@ import butterknife.ButterKnife;
 import butterknife.OnCheckedChanged;
 import butterknife.OnClick;
 import io.reactivex.Observable;
+import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.functions.Function;
+import io.reactivex.functions.Predicate;
+import io.reactivex.schedulers.Schedulers;
 import retrofit2.Retrofit;
 
 public class SearchActivity extends AppCompatActivity {
@@ -59,6 +66,7 @@ public class SearchActivity extends AppCompatActivity {
 
     @BindView(R.id.poster_header_recycler_view)
     RecyclerView posterHeaderRecyclerView;
+    private PosterRecyclerViewAdapter adapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -74,18 +82,31 @@ public class SearchActivity extends AppCompatActivity {
         numberPicker.setWrapSelectorWheel(false);
         numberPicker.setValue(year);
 
-        PosterRecyclerViewAdapter adapter = new PosterRecyclerViewAdapter();
+        adapter = new PosterRecyclerViewAdapter();
         posterHeaderRecyclerView.setAdapter(adapter);
-        posterHeaderRecyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
+
+        final CarouselLayoutManager layoutManager = new CarouselLayoutManager(CarouselLayoutManager.HORIZONTAL, true );
+        posterHeaderRecyclerView.setLayoutManager(layoutManager);
+        posterHeaderRecyclerView.setHasFixedSize(true);
+        posterHeaderRecyclerView.addOnScrollListener(new CenterScrollListener());
+        layoutManager.setPostLayoutListener(new CarouselZoomPostLayoutListener());
+
 
         RetrofitProvider retrofitProvider = (RetrofitProvider) getApplication();
         Retrofit retrofit = retrofitProvider.privideRetrofit();
         SearchService searchService = retrofit.create(SearchService.class);
 
-
-        searchService.search("A*", "2016", null)
+        searchService.search("*m*", "2016", null)
                 .flatMap(searchResult -> Observable.fromIterable(searchResult.getItems()))            //rozbijamy wynik, zeby móc dostać się do url posterów
-                .map(MovieListingItem::getPoster);
+                .map(MovieListingItem::getPoster)
+                .filter(posterUrl -> {
+                    return !"N/A".equalsIgnoreCase(posterUrl);})              //filtrujemy zeby nie bylo tych bez obrazka
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .toList()
+                .subscribe(this::success, this::error); //new Consumer (Throwable) .....
+
+
 
 
 //        searchService.search("A*", "2016", null)
@@ -95,8 +116,21 @@ public class SearchActivity extends AppCompatActivity {
 //                    public String apply(MovieListingItem movieListingItem) throws Exception {
 //                        return movieListingItem.getPoster();
 //                    }
-//                });
+//                }) .filter(new Predicate<String>() {
+//        @Override
+//        public boolean test(String posterUrl) throws Exception {
+//            return !"N/A".equalsIgnoreCase(posterUrl);
+//        }
+//    });
 
+
+    }
+
+    private void success(List<String> list) {
+        adapter.setUrls(list);
+    }
+
+    private void error(Throwable throwable) {
 
     }
 

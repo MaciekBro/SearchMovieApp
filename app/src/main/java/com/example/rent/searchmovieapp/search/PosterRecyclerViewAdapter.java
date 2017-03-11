@@ -54,6 +54,7 @@ public class PosterRecyclerViewAdapter extends RecyclerView.Adapter<PosterRecycl
 
     public void setUrls(List<String> urls) {
         this.urls = urls;
+        notifyDataSetChanged();
 
     }
 }

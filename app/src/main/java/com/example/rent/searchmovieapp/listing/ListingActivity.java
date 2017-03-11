@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.widget.DividerItemDecoration;
+import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.widget.FrameLayout;
@@ -83,10 +84,13 @@ public class ListingActivity extends NucleusAppCompatActivity<ListingPresenter> 
         //subscibeOn uzywamy tylko raz
         //observeOn uzywalmy do wielokrotnego przełączania wątków
 
-//        RecyclerView.LayoutManager layoutManager
+
+
 //        DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(recyclerView.getContext(),
-//                layoutManager.getOrientation());
+//                recyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)));
 //        recyclerView.addItemDecoration(dividerItemDecoration);
+
+
 
 
 //        getPresenter().getDataAnsync(title)
