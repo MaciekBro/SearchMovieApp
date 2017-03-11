@@ -5,4 +5,5 @@
     <color name="colorAccent">#FF4081</color>
     <color name="colorAccentNew">#d2691e</color>
     <color name="blackPrimary">#000000</color>
+    <color name="semiTransparentBlack">#65000000</color>
 </resources>

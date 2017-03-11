@@ -38,12 +38,17 @@ public class MoviesListAdapter extends RecyclerView.Adapter<MoviesListAdapter.My
         //tutaj ustawiamy konkretne widoki!
         movieListingItem = items.get(position);
         Glide.with(holder.poster.getContext()).load(movieListingItem.getPoster()).into(holder.poster);   //wzielismy kontekst z postera, bo tego wymaga Glide
-        holder.titleAndYear.setText(movieListingItem.getTitle() + "(" + movieListingItem.getYear()+ ")");
-        holder.type.setText("typ: "+movieListingItem.getType());
+        holder.titleAndYear.setText(movieListingItem.getTitle() + "(" + movieListingItem.getYear() + ")");
+        holder.type.setText("typ: " + movieListingItem.getType());
     }
 
     public void setItems(List<MovieListingItem> items) {        //zebysmy mogli podac itemy do adaptera
         this.items = items;
+        notifyDataSetChanged();
+    }
+
+    public void addItems(List<MovieListingItem> items) {
+        this.items.addAll(items);
         notifyDataSetChanged();
     }
 

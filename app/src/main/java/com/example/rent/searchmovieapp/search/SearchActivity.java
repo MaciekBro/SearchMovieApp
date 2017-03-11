@@ -85,7 +85,7 @@ public class SearchActivity extends AppCompatActivity {
         adapter = new PosterRecyclerViewAdapter();
         posterHeaderRecyclerView.setAdapter(adapter);
 
-        final CarouselLayoutManager layoutManager = new CarouselLayoutManager(CarouselLayoutManager.HORIZONTAL, true );
+        final CarouselLayoutManager layoutManager = new CarouselLayoutManager(CarouselLayoutManager.HORIZONTAL, true);
         posterHeaderRecyclerView.setLayoutManager(layoutManager);
         posterHeaderRecyclerView.setHasFixedSize(true);
         posterHeaderRecyclerView.addOnScrollListener(new CenterScrollListener());
@@ -96,17 +96,16 @@ public class SearchActivity extends AppCompatActivity {
         Retrofit retrofit = retrofitProvider.privideRetrofit();
         SearchService searchService = retrofit.create(SearchService.class);
 
-        searchService.search("*m*", "2016", null)
+        searchService.search(1, "*m*", "2016", null)
                 .flatMap(searchResult -> Observable.fromIterable(searchResult.getItems()))            //rozbijamy wynik, zeby móc dostać się do url posterów
                 .map(MovieListingItem::getPoster)
                 .filter(posterUrl -> {
-                    return !"N/A".equalsIgnoreCase(posterUrl);})              //filtrujemy zeby nie bylo tych bez obrazka
+                    return !"N/A".equalsIgnoreCase(posterUrl);
+                })              //filtrujemy zeby nie bylo tych bez obrazka
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .toList()
                 .subscribe(this::success, this::error); //new Consumer (Throwable) .....
-
-
 
 
 //        searchService.search("A*", "2016", null)

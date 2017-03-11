@@ -55,4 +55,17 @@
 
     </ViewFlipper>
 
+    <TextView
+        android:id="@+id/counter"
+        android:textSize="20sp"
+        tools:text="23/123"
+        android:textColor="@android:color/white"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"
+        android:background="@color/semiTransparentBlack"
+        android:layout_margin="5dp"
+        android:padding="10dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+
 </RelativeLayout>
