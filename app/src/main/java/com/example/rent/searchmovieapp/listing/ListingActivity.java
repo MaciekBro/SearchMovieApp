@@ -3,6 +3,7 @@ package com.example.rent.searchmovieapp.listing;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -16,6 +17,7 @@ import android.widget.ViewFlipper;
 
 import com.example.rent.searchmovieapp.R;
 import com.example.rent.searchmovieapp.RetrofitProvider;
+import com.example.rent.searchmovieapp.details.DetailsActivity;
 import com.example.rent.searchmovieapp.search.SearchResult;
 
 import butterknife.BindView;
@@ -29,7 +31,7 @@ import static io.reactivex.schedulers.Schedulers.io;
 
 
 @RequiresPresenter(ListingPresenter.class)
-public class ListingActivity extends NucleusAppCompatActivity<ListingPresenter> implements CurrentItemListener, ShowOrHideCounter {
+public class ListingActivity extends NucleusAppCompatActivity<ListingPresenter> implements CurrentItemListener, ShowOrHideCounter, OnMovieItemClickListener {
 
     private static final String SEARCH_TITLE = "search_title";    //do przechowywania wpisanego tekstu
     private MoviesListAdapter adapter;
@@ -52,6 +54,9 @@ public class ListingActivity extends NucleusAppCompatActivity<ListingPresenter> 
 
     @BindView(R.id.counter)
     TextView counter;
+
+    @BindView(R.id.swipe_refresh)
+    SwipeRefreshLayout swipeRefreshLayout;
 
     private EndlessScrollListener endlessScrollListener;
 
@@ -77,33 +82,39 @@ public class ListingActivity extends NucleusAppCompatActivity<ListingPresenter> 
 
 
         adapter = new MoviesListAdapter();
+        adapter.setOnMovieItemClickListener(this);
+
         recyclerView.setAdapter(adapter);
 
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false);
         recyclerView.setLayoutManager(linearLayoutManager);
-        endlessScrollListener = new EndlessScrollListener(linearLayoutManager,getPresenter());
+        endlessScrollListener = new EndlessScrollListener(linearLayoutManager, getPresenter());
         recyclerView.addOnScrollListener(endlessScrollListener);
 
         endlessScrollListener.setCurrentItemListener(this); //bo aktywność nasłuchuje
         endlessScrollListener.setShowOrHideCounter(this);
 
-        getPresenter().getDataAnsync(title, year, type)   //getPresenter zwraca prezentaera którego wczesniej definiowalismy
-                .subscribeOn(io())       //to co jest  powyżej jest wykonane w innym wątku
-                .observeOn(mainThread())  //to co bedzie wykonywane w głównym wątku
-                .subscribe(this::success, this::error);     //pierwszy metr jest pozytywny, drugi odpowiada za bledy
+        swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                startLoading(title, year, type);
+
+            }
+        });
+
+        startLoading(title, year, type);
 
         counter.animate().alpha(0);
 
-        //subscibeOn uzywamy tylko raz
-        //observeOn uzywalmy do wielokrotnego przełączania wątków
+    }
+
+    //        getPresenter().getDataAnsync(title, year, type)   //getPresenter zwraca prezentaera którego wczesniej definiowalismy
+//                .subscribeOn(io())       //to co jest  powyżej jest wykonane w innym wątku
+//                .observeOn(mainThread())  //to co bedzie wykonywane w głównym wątku
+//                .subscribe(this::success, this::error);     //pierwszy metr jest pozytywny, drugi odpowiada za bledy
 
 
-//        DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(recyclerView.getContext(),
-//                recyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)));
-//        recyclerView.addItemDecoration(dividerItemDecoration);
-
-
-//        getPresenter().getDataAnsync(title)
+    //        getPresenter().getDataAnsync(title)
 //                .subscribeOn(Schedulers.io())       //to co jest  powyżej jest wykonane w innym wątku
 //                .observeOn(AndroidSchedulers.mainThread())  //to co bedzie wykonywane w głównym wątku
 //                .subscribe(new Consumer<SearchResult>() {
@@ -119,6 +130,12 @@ public class ListingActivity extends NucleusAppCompatActivity<ListingPresenter> 
 //                    }
 //
 //                });
+
+    private void startLoading(String title, int year, String type) {
+        getPresenter().getDataAnsync(title, year, type)   //getPresenter zwraca prezentaera którego wczesniej definiowalismy
+                .subscribeOn(io())       //to co jest  powyżej jest wykonane w innym wątku
+                .observeOn(mainThread())  //to co bedzie wykonywane w głównym wątku
+                .subscribe(this::success, this::error);
     }
 
     @OnClick(R.id.no_internet_image_view)
@@ -127,12 +144,14 @@ public class ListingActivity extends NucleusAppCompatActivity<ListingPresenter> 
     }
 
     private void error(Throwable throwable) {
+        swipeRefreshLayout.setRefreshing(false);
         viewFlipper.setDisplayedChild(viewFlipper.indexOfChild(noInternetImage));
     }
 
 
     private void success(SearchResult searchResult) {
 
+        swipeRefreshLayout.setRefreshing(false);
 
         if ("false".equalsIgnoreCase(searchResult.getResponse())) {          //robimy tak z false bo wiemy ze nie przyjdzie nam null           //ignorujemy wielkosc litery
 
@@ -140,14 +159,14 @@ public class ListingActivity extends NucleusAppCompatActivity<ListingPresenter> 
 
         } else {
 
-            viewFlipper.setDisplayedChild(viewFlipper.indexOfChild(recyclerView));
+            viewFlipper.setDisplayedChild(viewFlipper.indexOfChild(swipeRefreshLayout));
             adapter.setItems(searchResult.getItems());
             endlessScrollListener.setTotalItemsNumber(Integer.parseInt(searchResult.getTotalResults()));
         }
 
     }
 
-    public void appendItems (SearchResult searchResult) { //ma za zadanie dodac do adaptera kolejne strony
+    public void appendItems(SearchResult searchResult) { //ma za zadanie dodac do adaptera kolejne strony
         adapter.addItems(searchResult.getItems());
         endlessScrollListener.setTotalItemsNumber(Integer.parseInt(searchResult.getTotalResults()));
     }
@@ -176,7 +195,10 @@ public class ListingActivity extends NucleusAppCompatActivity<ListingPresenter> 
         counter.animate().alpha(0).setDuration(900);   //translation jest relatywne do jego początkowej pozycji
     }
 
-
+    @Override
+    public void onMovieItemClick(String imdbID) {           //z interface
+        startActivity(DetailsActivity.createIntent(this, imdbID));
+    }
 
 
     //    public void setDataOnUiThread(SearchResult result, boolean isProblemWithInternetConnection) { //

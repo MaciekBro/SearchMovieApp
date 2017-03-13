@@ -20,7 +20,12 @@ import java.util.List;
 public class MoviesListAdapter extends RecyclerView.Adapter<MoviesListAdapter.MyViewHolder> {
 
     private List<MovieListingItem> items = Collections.emptyList();   //List to jest interface ktory zawiera ArrayList itd. !!!
-    private MovieListingItem movieListingItem;
+    private OnMovieItemClickListener onMovieItemClickListener;
+
+
+    public void setOnMovieItemClickListener (OnMovieItemClickListener onMovieItemClickListener) {   //do ustawiania
+        this.onMovieItemClickListener = onMovieItemClickListener;
+    }
 
     @Override
     public MyViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {        //parentem jest RecyclerView
@@ -36,10 +41,16 @@ public class MoviesListAdapter extends RecyclerView.Adapter<MoviesListAdapter.My
     @Override
     public void onBindViewHolder(MyViewHolder holder, int position) {       //ta metoda jest wolana dla kazdego widoku
         //tutaj ustawiamy konkretne widoki!
-        movieListingItem = items.get(position);
+        MovieListingItem  movieListingItem = items.get(position);
         Glide.with(holder.poster.getContext()).load(movieListingItem.getPoster()).into(holder.poster);   //wzielismy kontekst z postera, bo tego wymaga Glide
         holder.titleAndYear.setText(movieListingItem.getTitle() + "(" + movieListingItem.getYear() + ")");
         holder.type.setText("typ: " + movieListingItem.getType());
+
+        holder.itemView.setOnClickListener(v -> {
+            if (onMovieItemClickListener != null) {
+                onMovieItemClickListener.onMovieItemClick(movieListingItem.getImdbID());
+            }
+        });
     }
 
     public void setItems(List<MovieListingItem> items) {        //zebysmy mogli podac itemy do adaptera
@@ -56,13 +67,14 @@ public class MoviesListAdapter extends RecyclerView.Adapter<MoviesListAdapter.My
         ImageView poster;
         TextView titleAndYear;
         TextView type;
+        View itemView; //zeby moc kliknac i przejsc do detali. zeby moc ustawic onClickListener
 
         public MyViewHolder(View itemView) {        //itemView jest naszym list_item. wczytalismy go za pomocą inflate
             super(itemView);
+            this.itemView = itemView;
             poster = (ImageView) itemView.findViewById(R.id.poster);
             titleAndYear = (TextView) itemView.findViewById(R.id.title_and_year);
             type = (TextView) itemView.findViewById(R.id.type);
-
 
         }
     }
