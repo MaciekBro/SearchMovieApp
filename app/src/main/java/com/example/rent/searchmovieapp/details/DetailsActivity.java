@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -11,6 +12,7 @@ import android.widget.Toast;
 import com.bumptech.glide.Glide;
 import com.example.rent.searchmovieapp.R;
 import com.example.rent.searchmovieapp.RetrofitProvider;
+import com.example.rent.searchmovieapp.details.gallery.GalleryActivity;
 
 import org.w3c.dom.Text;
 
@@ -68,6 +70,8 @@ public class DetailsActivity extends NucleusAppCompatActivity<DetailPresenter> {
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(this::success, this::error);
+
+
     }
 
     @Override
@@ -87,6 +91,13 @@ public class DetailsActivity extends NucleusAppCompatActivity<DetailPresenter> {
         awards.setText("Awards: " + movieItem.getAwards()+ "\n");
         director.setText("Director: " +movieItem.getDirector()+ "\n");
         actors.setText("Actors: " + movieItem.getActors());
+
+        poster.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(GalleryActivity.createIntent(DetailsActivity.this, movieItem.getPoster()));
+            }
+        });
 
     }
 

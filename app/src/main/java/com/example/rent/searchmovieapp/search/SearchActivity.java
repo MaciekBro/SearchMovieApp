@@ -3,22 +3,26 @@ package com.example.rent.searchmovieapp.search;
 import android.support.design.widget.TextInputEditText;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.view.KeyEvent;
 import android.view.View;
+import android.view.inputmethod.EditorInfo;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.ImageButton;
 import android.widget.NumberPicker;
 import android.widget.RadioGroup;
+import android.widget.TextView;
 
 import com.azoft.carousellayoutmanager.CarouselLayoutManager;
 import com.azoft.carousellayoutmanager.CarouselZoomPostLayoutListener;
 import com.azoft.carousellayoutmanager.CenterScrollListener;
 import com.example.rent.searchmovieapp.R;
 import com.example.rent.searchmovieapp.RetrofitProvider;
+import com.example.rent.searchmovieapp.details.DetailsActivity;
 import com.example.rent.searchmovieapp.listing.ListingActivity;
 import com.example.rent.searchmovieapp.listing.MovieListingItem;
+import com.example.rent.searchmovieapp.listing.OnMovieItemClickListener;
 
 import java.util.Calendar;
 import java.util.HashMap;
@@ -32,11 +36,12 @@ import butterknife.OnClick;
 import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.functions.Function;
-import io.reactivex.functions.Predicate;
 import io.reactivex.schedulers.Schedulers;
 import retrofit2.Retrofit;
 
-public class SearchActivity extends AppCompatActivity {
+public class SearchActivity extends AppCompatActivity implements OnMovieItemClickListener {
+
+    private static final String NUMBER_PICKER_STATE = "klucz";
 
     //z id robi klucz api
     private Map<Integer, String> apiKeysMap = new HashMap<Integer, String>() {{
@@ -68,6 +73,19 @@ public class SearchActivity extends AppCompatActivity {
     RecyclerView posterHeaderRecyclerView;
     private PosterRecyclerViewAdapter adapter;
 
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        numberPicker.setValue(savedInstanceState.getInt(NUMBER_PICKER_STATE));
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putInt(NUMBER_PICKER_STATE, numberPicker.getValue());
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -85,6 +103,7 @@ public class SearchActivity extends AppCompatActivity {
         adapter = new PosterRecyclerViewAdapter();
         posterHeaderRecyclerView.setAdapter(adapter);
 
+
         final CarouselLayoutManager layoutManager = new CarouselLayoutManager(CarouselLayoutManager.HORIZONTAL, true);
         posterHeaderRecyclerView.setLayoutManager(layoutManager);
         posterHeaderRecyclerView.setHasFixedSize(true);
@@ -96,16 +115,36 @@ public class SearchActivity extends AppCompatActivity {
         Retrofit retrofit = retrofitProvider.privideRetrofit();
         SearchService searchService = retrofit.create(SearchService.class);
 
-        searchService.search(1, "*m*", "2016", null)
+        searchService.search(1, "*a*", "2016", null)
                 .flatMap(searchResult -> Observable.fromIterable(searchResult.getItems()))            //rozbijamy wynik, zeby móc dostać się do url posterów
-                .map(MovieListingItem::getPoster)
-                .filter(posterUrl -> {
-                    return !"N/A".equalsIgnoreCase(posterUrl);
+                .map(new Function<MovieListingItem, SimpleMovieItem>() {
+                    @Override
+                    public SimpleMovieItem apply(MovieListingItem movieListingItem) throws Exception {
+                        return new SimpleMovieItem(movieListingItem.getImdbID(), movieListingItem.getPoster());
+                    }
+                })
+                .filter(simpleMovieItem -> {
+                    return !"N/A".equalsIgnoreCase(simpleMovieItem.getPoster());
                 })              //filtrujemy zeby nie bylo tych bez obrazka
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .toList()
                 .subscribe(this::success, this::error); //new Consumer (Throwable) .....
+
+
+        editText.setOnEditorActionListener(new TextView.OnEditorActionListener() {      //wyszukiwanie tekstu na ENTER
+            @Override
+            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+                if (actionId == EditorInfo.IME_NULL
+                        && event.getAction() == KeyEvent.ACTION_DOWN) {
+                    onSearchButtonClick();
+
+                }
+                return false;
+            }
+        });
+
+        adapter.setOnMovieItemClickListener(this);
 
 
 //        searchService.search("A*", "2016", null)
@@ -125,8 +164,8 @@ public class SearchActivity extends AppCompatActivity {
 
     }
 
-    private void success(List<String> list) {
-        adapter.setUrls(list);
+    private void success(List<SimpleMovieItem> list) {
+        adapter.setSimpleMovieItems(list);
     }
 
     private void error(Throwable throwable) {
@@ -153,4 +192,8 @@ public class SearchActivity extends AppCompatActivity {
                 year, typeKey));
     }
 
+    @Override
+    public void onMovieItemClick(String imdbID) {
+        startActivity(DetailsActivity.createIntent( this, imdbID ));
+    }
 }

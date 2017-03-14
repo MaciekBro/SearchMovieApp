@@ -19,7 +19,8 @@
             </intent-filter>
         </activity>
         <activity android:name=".listing.ListingActivity" />
-        <activity android:name=".details.DetailsActivity"></activity>
+        <activity android:name=".details.DetailsActivity" />
+        <activity android:name=".details.gallery.GalleryActivity"></activity>
     </application>
 
 </manifest>
