@@ -8,6 +8,7 @@ import android.widget.ImageView;
 
 import com.bumptech.glide.Glide;
 import com.example.rent.searchmovieapp.R;
+import com.example.rent.searchmovieapp.listing.OnMovieItemClickListener;
 
 import java.util.Collections;
 import java.util.List;
@@ -20,7 +21,13 @@ import static butterknife.ButterKnife.*;
 
 public class PosterRecyclerViewAdapter extends RecyclerView.Adapter<PosterRecyclerViewAdapter.ViewHolder> {
 
-    private List<String> urls = Collections.emptyList();
+//    private List<String> urls = Collections.emptyList();
+    private List<SimpleMovieItem> simpleMovieItem = Collections.emptyList();
+    private OnMovieItemClickListener onMovieItemClickListener;
+
+    public void setOnMovieItemClickListener(OnMovieItemClickListener onMovieItemClickListener) {
+        this.onMovieItemClickListener = onMovieItemClickListener;
+    }
 
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
@@ -30,12 +37,21 @@ public class PosterRecyclerViewAdapter extends RecyclerView.Adapter<PosterRecycl
 
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
-        Glide.with(holder.posterImageView.getContext()).load(urls.get(position)).into(holder.posterImageView);
+        Glide.with(holder.posterImageView.getContext()).load(simpleMovieItem.get(position).getPoster()).into(holder.posterImageView);
+
+        holder.posterImageView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (onMovieItemClickListener!=null){
+                    onMovieItemClickListener.onMovieItemClick(simpleMovieItem.get(position).getImdbID());
+                }
+            }
+        });
     }
 
     @Override
     public int getItemCount() {
-        return urls.size();
+        return simpleMovieItem.size();
     }
 
     class ViewHolder extends RecyclerView.ViewHolder {
@@ -52,8 +68,8 @@ public class PosterRecyclerViewAdapter extends RecyclerView.Adapter<PosterRecycl
 
     }
 
-    public void setUrls(List<String> urls) {
-        this.urls = urls;
+    public void setSimpleMovieItems(List<SimpleMovieItem> simpleMovieItem) {
+        this.simpleMovieItem = simpleMovieItem;
         notifyDataSetChanged();
 
     }

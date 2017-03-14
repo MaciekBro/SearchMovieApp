@@ -3,9 +3,9 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/activity_result"
-    android:background="@color/blackPrimary"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@color/blackPrimary">
 
     <ViewFlipper
         android:id="@+id/view_flipper"
@@ -13,46 +13,64 @@
         android:layout_height="match_parent">
 
         <ProgressBar
-            android:scaleX="2"
-            android:scaleY="2"
             android:id="@+id/progress_bar"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="center" />
+            android:layout_gravity="center"
+            android:scaleX="2"
+            android:scaleY="2" />
 
-        <android.support.v7.widget.RecyclerView
-            android:id="@+id/recycler_view"
+        <android.support.v4.widget.SwipeRefreshLayout
+            android:id="@+id/swipe_refresh"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            app:layoutManager="LinearLayoutManager">
+            android:layout_height="match_parent">
 
+            <android.support.v7.widget.RecyclerView
+                android:id="@+id/recycler_view"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                app:layoutManager="LinearLayoutManager">
 
-        </android.support.v7.widget.RecyclerView>
+            </android.support.v7.widget.RecyclerView>
 
+        </android.support.v4.widget.SwipeRefreshLayout>
 
         <ImageView
-            android:background="@android:color/white"
             android:id="@+id/no_internet_image_view"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:background="@android:color/white"
             app:srcCompat="@drawable/icon_no_internet_connection" />
 
         <FrameLayout
             android:id="@+id/no_result"
-            android:background="@android:color/holo_red_dark"
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
+            android:layout_height="match_parent"
+            android:background="@android:color/holo_red_dark">
 
             <TextView
-                android:gravity="center"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                android:textSize="40sp"
+                android:gravity="center"
                 android:text="Jesteś pewny, że wiesz czego szukasz??"
                 android:textColor="@android:color/white"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
+                android:textSize="40sp" />
         </FrameLayout>
 
     </ViewFlipper>
+
+    <TextView
+        android:id="@+id/counter"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"
+        android:layout_margin="5dp"
+        android:background="@color/semiTransparentBlack"
+        android:padding="10dp"
+        android:textColor="@android:color/white"
+        android:textSize="20sp"
+        tools:text="23/123" />
 
 </RelativeLayout>

@@ -11,5 +11,5 @@ import retrofit2.http.Query;
 public interface SearchService {        //wszystko co definiuje nasz serwis do wyszukiwania
                                         //
     @GET("/")           //tutaj podalibysmy wiecej informacji jestli byloby to potrzebne, numberPicker jakis klucz
-    Observable<SearchResult> search(@Query("s") String title, @Query("y") String year, @Query ("type") String type);
+    Observable<SearchResult> search(@Query("page") int page, @Query("s") String title, @Query("y") String year, @Query ("type") String type);
 }

@@ -28,4 +28,12 @@ public class SearchResult {
     public String getResponse() {
         return response;
     }
+
+    public void setTotalResults(String totalResults) {
+        this.totalResults = totalResults;
+    }
+
+    public void setItems(List<MovieListingItem> items) {
+        this.items = items;
+    }
 }
