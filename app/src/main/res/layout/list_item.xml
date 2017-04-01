@@ -1,72 +1,88 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:clickable="true"
-    android:foreground="?attr/selectableItemBackground"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:orientation="vertical">
-
+    android:layout_height="wrap_content">
 
     <LinearLayout
-
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@android:color/white"
-        android:orientation="horizontal">
+        android:clickable="true"
+        android:foreground="?attr/selectableItemBackground"
+        android:orientation="vertical">
 
-
-        <ImageView
-            android:id="@+id/poster"
-            android:layout_width="100dp"
-            android:layout_height="150dp"
-            tools:src="@drawable/ic_search" />
 
         <LinearLayout
 
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:background="@android:color/white"
+            android:orientation="horizontal">
+
+
+            <ImageView
+                android:id="@+id/poster"
+                android:layout_width="100dp"
+                android:layout_height="150dp"
+                tools:src="@drawable/ic_search" />
 
             <LinearLayout
-                android:orientation="horizontal"
+
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content">
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/title_and_year"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:padding="8dp"
+                        android:textColor="@color/colorAccentNew"
+                        android:textSize="24sp"
+                        android:textStyle="bold"
+                        tools:text="Titanic (1997)" />
+
+                    <ImageView
+
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" />
+                </LinearLayout>
+
 
                 <TextView
-                    android:textColor="@color/colorAccentNew"
-                    android:id="@+id/title_and_year"
+                    android:id="@+id/type"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:padding="8dp"
+                    android:textColor="@color/colorAccentNew"
                     android:textSize="24sp"
-                    android:textStyle="bold"
-                    tools:text="Titanic (1997)" />
+                    tools:text="type: Movie" />
 
-                <ImageView
-
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" />
             </LinearLayout>
-
-
-            <TextView
-                android:textColor="@color/colorAccentNew"
-                android:id="@+id/type"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:padding="8dp"
-                android:textSize="24sp"
-                tools:text="type: Movie" />
 
         </LinearLayout>
 
+        <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="5dp"
+            android:background="@color/blackPrimary" />
+
+
     </LinearLayout>
 
-    <ImageView
-        android:background="@color/blackPrimary"
-        android:layout_width="match_parent"
-        android:layout_height="5dp" />
+    <com.like.LikeButton
+        android:id="@+id/star_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerVertical="true"
+        android:layout_alignParentRight="true"
+        app:icon_size="25dp"
+        app:icon_type="thumb" />
 
-
-</LinearLayout>
+</RelativeLayout>

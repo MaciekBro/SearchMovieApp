@@ -1,5 +1,6 @@
 package com.example.rent.searchmovieapp.listing;
 
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
@@ -14,6 +15,8 @@ import android.widget.Toast;
 import android.widget.ViewFlipper;
 
 
+import com.example.rent.searchmovieapp.MovieDatabaseOpenHelper;
+import com.example.rent.searchmovieapp.MovieTableContract;
 import com.example.rent.searchmovieapp.R;
 import com.example.rent.searchmovieapp.RetrofitProvider;
 import com.example.rent.searchmovieapp.details.DetailsActivity;
@@ -30,13 +33,15 @@ import static io.reactivex.schedulers.Schedulers.io;
 
 
 @RequiresPresenter(ListingPresenter.class)
-public class ListingActivity extends NucleusAppCompatActivity<ListingPresenter> implements CurrentItemListener, ShowOrHideCounter, OnMovieItemClickListener {
+public class ListingActivity extends NucleusAppCompatActivity<ListingPresenter> implements CurrentItemListener, ShowOrHideCounter, OnMovieItemClickListener, OnLikeButtonClickListener {
 
     private static final String SEARCH_TITLE = "search_title";    //do przechowywania wpisanego tekstu
     private MoviesListAdapter adapter;
     private static final String SEARCH_YEAR = "search_year";
     public static final int NO_YEAR_SELECTED = -1;
     public static final String SEARCH_TYPE = "search_type";
+
+    MovieDatabaseOpenHelper openHelper;
 
 
     @BindView(R.id.view_flipper)
@@ -79,9 +84,10 @@ public class ListingActivity extends NucleusAppCompatActivity<ListingPresenter> 
 //        noInternetImage = (ImageView) findViewById(R.id.no_internet_image_view);
 //        recyclerView = (RecyclerView) findViewById(R.id.recycler_view);
 
-
+        openHelper = new MovieDatabaseOpenHelper(this);
         adapter = new MoviesListAdapter();
         adapter.setOnMovieItemClickListener(this);
+        adapter.setOnLikeButtonClickListener(this);
 
         recyclerView.setAdapter(adapter);
 
@@ -200,7 +206,20 @@ public class ListingActivity extends NucleusAppCompatActivity<ListingPresenter> 
     }
 
     public void setNewAggregatorResult(ResultAggregator newAggregatorResult) {
+        swipeRefreshLayout.setRefreshing(false);
         success(newAggregatorResult);
+
+    }
+
+    @Override
+    public void onLikeButtonClick(MovieListingItem movieListingItem) {
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(MovieTableContract.COLUMN_TITLE, movieListingItem.getTitle());
+        contentValues.put(MovieTableContract.COLUMN_YEAR, movieListingItem.getYear());
+        contentValues.put(MovieTableContract.COLUMN_POSTER, movieListingItem.getPoster());
+        contentValues.put(MovieTableContract.COLUMN_TYPE, movieListingItem.getType());
+
+        openHelper.getWritableDatabase().insert(MovieTableContract.TABLE_NAME, null, contentValues);
     }
 
 

@@ -9,6 +9,8 @@ import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 import com.example.rent.searchmovieapp.R;
+import com.like.LikeButton;
+import com.like.OnLikeListener;
 
 import java.util.Collections;
 import java.util.List;
@@ -25,6 +27,11 @@ public class MoviesListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
     private OnMovieItemClickListener onMovieItemClickListener;
     private static final int GAMES_VIEW_HOLDER = 1;
     private static final int MY_VIEW_HOLDER = 2;
+    private OnLikeButtonClickListener onLikeButtonClickListener;
+
+    public void setOnLikeButtonClickListener(OnLikeButtonClickListener onLikeButtonClickListener) {
+        this.onLikeButtonClickListener = onLikeButtonClickListener;
+    }
 
     public void setOnMovieItemClickListener(OnMovieItemClickListener onMovieItemClickListener) {   //do ustawiania
         this.onMovieItemClickListener = onMovieItemClickListener;
@@ -65,6 +72,21 @@ public class MoviesListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
                     onMovieItemClickListener.onMovieItemClick(movieListingItem.getImdbID());
                 }
             });
+
+            myViewHolder.likeButton.setOnLikeListener(new OnLikeListener() {
+                @Override
+                public void liked(LikeButton likeButton) {
+                    if (onLikeButtonClickListener!=null){
+                        onLikeButtonClickListener.onLikeButtonClick(movieListingItem);
+                    }
+                }
+
+                @Override
+                public void unLiked(LikeButton likeButton) {
+
+                }
+            });
+
         } else {
             GamesViewHolder gamesViewHolder = (GamesViewHolder) holder;
             Glide.with(gamesViewHolder.poster.getContext()).load(movieListingItem.getPoster()).into(gamesViewHolder.poster);
@@ -80,7 +102,7 @@ public class MoviesListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
 
     @Override
     public int getItemViewType(int position) {
-        if ("Game".equalsIgnoreCase(items.get(position).getType())){
+        if ("Game".equalsIgnoreCase(items.get(position).getType())) {
             return GAMES_VIEW_HOLDER;
         } else {
             return MY_VIEW_HOLDER;
@@ -102,6 +124,7 @@ public class MoviesListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
         ImageView poster;
         TextView titleAndYear;
         TextView type;
+        LikeButton likeButton;
 //        View itemView; //zeby moc kliknac i przejsc do detali. zeby moc ustawic onClickListener //jenak nie jest potrzebne bo jest domyslnie w viewholderze zainicjowane
 
         public MyViewHolder(View itemView) {        //itemView jest naszym list_item. wczytalismy go za pomocą inflate
@@ -110,7 +133,7 @@ public class MoviesListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
             poster = (ImageView) itemView.findViewById(R.id.poster);
             titleAndYear = (TextView) itemView.findViewById(R.id.title_and_year);
             type = (TextView) itemView.findViewById(R.id.type);
-
+            likeButton = (LikeButton) itemView.findViewById(R.id.star_button);
         }
     }
 
@@ -121,8 +144,8 @@ public class MoviesListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
 
         public GamesViewHolder(View itemView) {
             super(itemView);
-            poster = ButterKnife.findById(itemView,R.id.game_poster);
-            title = ButterKnife.findById(itemView,R.id.game_title);
+            poster = ButterKnife.findById(itemView, R.id.game_poster);
+            title = ButterKnife.findById(itemView, R.id.game_title);
         }
     }
 

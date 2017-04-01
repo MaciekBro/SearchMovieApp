@@ -2,6 +2,8 @@ package com.example.rent.searchmovieapp;
 
 import android.app.Application;
 
+import com.facebook.stetho.Stetho;
+
 import retrofit2.Retrofit;
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
 import retrofit2.converter.gson.GsonConverterFactory;
@@ -18,6 +20,8 @@ private Retrofit retrofit;
     @Override
     public void onCreate() {
         super.onCreate();
+
+        Stetho.initializeWithDefaults(this);
 
         retrofit = new Retrofit.Builder()
                 .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
