@@ -1,10 +1,10 @@
 package com.example.rent.searchmovieapp.listing;
 
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.widget.SwipeRefreshLayout;
-import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
@@ -15,29 +15,37 @@ import android.widget.Toast;
 import android.widget.ViewFlipper;
 
 
+import com.example.rent.searchmovieapp.MovieApplication;
+import com.example.rent.searchmovieapp.MovieDatabaseOpenHelper;
+import com.example.rent.searchmovieapp.MovieTableContract;
 import com.example.rent.searchmovieapp.R;
 import com.example.rent.searchmovieapp.RetrofitProvider;
 import com.example.rent.searchmovieapp.details.DetailsActivity;
 import com.example.rent.searchmovieapp.search.SearchResult;
+
+import javax.inject.Inject;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import nucleus.factory.RequiresPresenter;
 import nucleus.view.NucleusAppCompatActivity;
+import retrofit2.Retrofit;
 
 import static io.reactivex.android.schedulers.AndroidSchedulers.mainThread;
 import static io.reactivex.schedulers.Schedulers.io;
 
 
 @RequiresPresenter(ListingPresenter.class)
-public class ListingActivity extends NucleusAppCompatActivity<ListingPresenter> implements CurrentItemListener, ShowOrHideCounter, OnMovieItemClickListener {
+public class ListingActivity extends NucleusAppCompatActivity<ListingPresenter> implements CurrentItemListener, ShowOrHideCounter, OnMovieItemClickListener, OnLikeButtonClickListener {
 
     private static final String SEARCH_TITLE = "search_title";    //do przechowywania wpisanego tekstu
     private MoviesListAdapter adapter;
     private static final String SEARCH_YEAR = "search_year";
     public static final int NO_YEAR_SELECTED = -1;
     public static final String SEARCH_TYPE = "search_type";
+
+    MovieDatabaseOpenHelper openHelper;
 
 
     @BindView(R.id.view_flipper)
@@ -60,6 +68,9 @@ public class ListingActivity extends NucleusAppCompatActivity<ListingPresenter> 
 
     private EndlessScrollListener endlessScrollListener;
 
+    @Inject
+    Retrofit retrofit;  //na potrzeby daggera
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -68,10 +79,19 @@ public class ListingActivity extends NucleusAppCompatActivity<ListingPresenter> 
 
         ButterKnife.bind(this); //binduje nasze powiazania nie potrzebujemy ich pozniej
 
-        if (savedInstanceState == null) { //jest nullem przy pierwszym uruchomieniu aplikacji, potem juz nie!!! wiemy z tego czy wchodzimy w aplikacje ktorys raz
-            RetrofitProvider retrofitProvider = (RetrofitProvider) getApplication();   //wiemy ze aplikacja jest RetrofitProviderem
-            getPresenter().setRetrofit(retrofitProvider.privideRetrofit());         //ustawiamy retrofita do prezentera
-        }
+        //dagger
+        MovieApplication movieApplication = (MovieApplication) getApplication();
+        movieApplication.getAppComponent().inject(this);
+        getPresenter().setRetrofit(retrofit);
+        //dagger
+
+        //nie potrzebne w daggerze
+//        if (savedInstanceState == null) { //jest nullem przy pierwszym uruchomieniu aplikacji, potem juz nie!!! wiemy z tego czy wchodzimy w aplikacje ktorys raz
+//            RetrofitProvider retrofitProvider = (RetrofitProvider) getApplication();   //wiemy ze aplikacja jest RetrofitProviderem
+//            getPresenter().setRetrofit(retrofitProvider.privideRetrofit());         //ustawiamy retrofita do prezentera
+//        }
+
+
 
         int year = getIntent().getIntExtra(SEARCH_YEAR, NO_YEAR_SELECTED);
         String type = getIntent().getStringExtra(SEARCH_TYPE);
@@ -80,9 +100,10 @@ public class ListingActivity extends NucleusAppCompatActivity<ListingPresenter> 
 //        noInternetImage = (ImageView) findViewById(R.id.no_internet_image_view);
 //        recyclerView = (RecyclerView) findViewById(R.id.recycler_view);
 
-
+        openHelper = new MovieDatabaseOpenHelper(this);
         adapter = new MoviesListAdapter();
         adapter.setOnMovieItemClickListener(this);
+        adapter.setOnLikeButtonClickListener(this);
 
         recyclerView.setAdapter(adapter);
 
@@ -108,13 +129,13 @@ public class ListingActivity extends NucleusAppCompatActivity<ListingPresenter> 
 
     }
 
-    //        getPresenter().getDataAnsync(title, year, type)   //getPresenter zwraca prezentaera którego wczesniej definiowalismy
+    //        getPresenter().startLoadingItems(title, year, type)   //getPresenter zwraca prezentaera którego wczesniej definiowalismy
 //                .subscribeOn(io())       //to co jest  powyżej jest wykonane w innym wątku
 //                .observeOn(mainThread())  //to co bedzie wykonywane w głównym wątku
 //                .subscribe(this::success, this::error);     //pierwszy metr jest pozytywny, drugi odpowiada za bledy
 
 
-    //        getPresenter().getDataAnsync(title)
+    //        getPresenter().startLoadingItems(title)
 //                .subscribeOn(Schedulers.io())       //to co jest  powyżej jest wykonane w innym wątku
 //                .observeOn(AndroidSchedulers.mainThread())  //to co bedzie wykonywane w głównym wątku
 //                .subscribe(new Consumer<SearchResult>() {
@@ -132,10 +153,10 @@ public class ListingActivity extends NucleusAppCompatActivity<ListingPresenter> 
 //                });
 
     private void startLoading(String title, int year, String type) {
-        getPresenter().getDataAnsync(title, year, type)   //getPresenter zwraca prezentaera którego wczesniej definiowalismy
-                .subscribeOn(io())       //to co jest  powyżej jest wykonane w innym wątku
-                .observeOn(mainThread())  //to co bedzie wykonywane w głównym wątku
-                .subscribe(this::success, this::error);
+        getPresenter().startLoadingItems(title, year, type);   //getPresenter zwraca prezentaera którego wczesniej definiowalismy
+//                .subscribeOn(io())       //to co jest  powyżej jest wykonane w innym wątku
+//                .observeOn(mainThread())  //to co bedzie wykonywane w głównym wątku
+//                .subscribe(this::success, this::error);
     }
 
     @OnClick(R.id.no_internet_image_view)
@@ -149,19 +170,19 @@ public class ListingActivity extends NucleusAppCompatActivity<ListingPresenter> 
     }
 
 
-    private void success(SearchResult searchResult) {
+    private void success(ResultAggregator resultAggregator) {
 
         swipeRefreshLayout.setRefreshing(false);
 
-        if ("false".equalsIgnoreCase(searchResult.getResponse())) {          //robimy tak z false bo wiemy ze nie przyjdzie nam null           //ignorujemy wielkosc litery
+        if ("false".equalsIgnoreCase(resultAggregator.getResponse())) {          //robimy tak z false bo wiemy ze nie przyjdzie nam null           //ignorujemy wielkosc litery
 
             viewFlipper.setDisplayedChild(viewFlipper.indexOfChild(noResultLayout));
 
         } else {
 
             viewFlipper.setDisplayedChild(viewFlipper.indexOfChild(swipeRefreshLayout));
-            adapter.setItems(searchResult.getItems());
-            endlessScrollListener.setTotalItemsNumber(Integer.parseInt(searchResult.getTotalResults()));
+            adapter.setItems(resultAggregator.getMovieItems());
+            endlessScrollListener.setTotalItemsNumber(resultAggregator.getTotalItemsResult());
         }
 
     }
@@ -198,6 +219,23 @@ public class ListingActivity extends NucleusAppCompatActivity<ListingPresenter> 
     @Override
     public void onMovieItemClick(String imdbID) {           //z interface
         startActivity(DetailsActivity.createIntent(this, imdbID));
+    }
+
+    public void setNewAggregatorResult(ResultAggregator newAggregatorResult) {
+        swipeRefreshLayout.setRefreshing(false);
+        success(newAggregatorResult);
+
+    }
+
+    @Override
+    public void onLikeButtonClick(MovieListingItem movieListingItem) {
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(MovieTableContract.COLUMN_TITLE, movieListingItem.getTitle());
+        contentValues.put(MovieTableContract.COLUMN_YEAR, movieListingItem.getYear());
+        contentValues.put(MovieTableContract.COLUMN_POSTER, movieListingItem.getPoster());
+        contentValues.put(MovieTableContract.COLUMN_TYPE, movieListingItem.getType());
+
+        openHelper.getWritableDatabase().insert(MovieTableContract.TABLE_NAME, null, contentValues);
     }
 
 

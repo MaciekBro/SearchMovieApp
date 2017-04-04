@@ -17,6 +17,7 @@ import android.widget.TextView;
 import com.azoft.carousellayoutmanager.CarouselLayoutManager;
 import com.azoft.carousellayoutmanager.CarouselZoomPostLayoutListener;
 import com.azoft.carousellayoutmanager.CenterScrollListener;
+import com.example.rent.searchmovieapp.MovieApplication;
 import com.example.rent.searchmovieapp.R;
 import com.example.rent.searchmovieapp.RetrofitProvider;
 import com.example.rent.searchmovieapp.details.DetailsActivity;
@@ -28,6 +29,8 @@ import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import javax.inject.Inject;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -73,6 +76,9 @@ public class SearchActivity extends AppCompatActivity implements OnMovieItemClic
     RecyclerView posterHeaderRecyclerView;
     private PosterRecyclerViewAdapter adapter;
 
+    @Inject
+    Retrofit retrofit;
+
 
     @Override
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
@@ -110,11 +116,13 @@ public class SearchActivity extends AppCompatActivity implements OnMovieItemClic
         posterHeaderRecyclerView.addOnScrollListener(new CenterScrollListener());
         layoutManager.setPostLayoutListener(new CarouselZoomPostLayoutListener());
 
+        MovieApplication movieApplication = (MovieApplication) getApplication();
+        movieApplication.getAppComponent().inject(this);
 
-        RetrofitProvider retrofitProvider = (RetrofitProvider) getApplication();
-        Retrofit retrofit = retrofitProvider.privideRetrofit();
+//        RetrofitProvider retrofitProvider = (RetrofitProvider) getApplication();
+//        Retrofit retrofit = retrofitProvider.privideRetrofit();               //na potrzeby daggera
+
         SearchService searchService = retrofit.create(SearchService.class);
-
         searchService.search(1, "*a*", "2016", null)
                 .flatMap(searchResult -> Observable.fromIterable(searchResult.getItems()))            //rozbijamy wynik, zeby móc dostać się do url posterów
                 .map(new Function<MovieListingItem, SimpleMovieItem>() {
