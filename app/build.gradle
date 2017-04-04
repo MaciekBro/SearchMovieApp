@@ -56,4 +56,6 @@ dependencies {
     compile 'com.azoft.carousellayoutmanager:carousel:1.2.1'
     compile 'com.github.jd-alexander:LikeButton:0.2.0'
     compile 'com.facebook.stetho:stetho:1.4.1'
+    compile 'com.google.dagger:dagger:2.10'
+    annotationProcessor 'com.google.dagger:dagger-compiler:2.10'
 }

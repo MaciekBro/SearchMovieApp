@@ -15,6 +15,7 @@ import android.widget.Toast;
 import android.widget.ViewFlipper;
 
 
+import com.example.rent.searchmovieapp.MovieApplication;
 import com.example.rent.searchmovieapp.MovieDatabaseOpenHelper;
 import com.example.rent.searchmovieapp.MovieTableContract;
 import com.example.rent.searchmovieapp.R;
@@ -22,11 +23,14 @@ import com.example.rent.searchmovieapp.RetrofitProvider;
 import com.example.rent.searchmovieapp.details.DetailsActivity;
 import com.example.rent.searchmovieapp.search.SearchResult;
 
+import javax.inject.Inject;
+
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import nucleus.factory.RequiresPresenter;
 import nucleus.view.NucleusAppCompatActivity;
+import retrofit2.Retrofit;
 
 import static io.reactivex.android.schedulers.AndroidSchedulers.mainThread;
 import static io.reactivex.schedulers.Schedulers.io;
@@ -64,6 +68,9 @@ public class ListingActivity extends NucleusAppCompatActivity<ListingPresenter> 
 
     private EndlessScrollListener endlessScrollListener;
 
+    @Inject
+    Retrofit retrofit;  //na potrzeby daggera
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -72,10 +79,19 @@ public class ListingActivity extends NucleusAppCompatActivity<ListingPresenter> 
 
         ButterKnife.bind(this); //binduje nasze powiazania nie potrzebujemy ich pozniej
 
-        if (savedInstanceState == null) { //jest nullem przy pierwszym uruchomieniu aplikacji, potem juz nie!!! wiemy z tego czy wchodzimy w aplikacje ktorys raz
-            RetrofitProvider retrofitProvider = (RetrofitProvider) getApplication();   //wiemy ze aplikacja jest RetrofitProviderem
-            getPresenter().setRetrofit(retrofitProvider.privideRetrofit());         //ustawiamy retrofita do prezentera
-        }
+        //dagger
+        MovieApplication movieApplication = (MovieApplication) getApplication();
+        movieApplication.getAppComponent().inject(this);
+        getPresenter().setRetrofit(retrofit);
+        //dagger
+
+        //nie potrzebne w daggerze
+//        if (savedInstanceState == null) { //jest nullem przy pierwszym uruchomieniu aplikacji, potem juz nie!!! wiemy z tego czy wchodzimy w aplikacje ktorys raz
+//            RetrofitProvider retrofitProvider = (RetrofitProvider) getApplication();   //wiemy ze aplikacja jest RetrofitProviderem
+//            getPresenter().setRetrofit(retrofitProvider.privideRetrofit());         //ustawiamy retrofita do prezentera
+//        }
+
+
 
         int year = getIntent().getIntExtra(SEARCH_YEAR, NO_YEAR_SELECTED);
         String type = getIntent().getStringExtra(SEARCH_TYPE);

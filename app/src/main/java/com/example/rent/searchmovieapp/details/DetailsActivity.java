@@ -10,11 +10,14 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
+import com.example.rent.searchmovieapp.MovieApplication;
 import com.example.rent.searchmovieapp.R;
 import com.example.rent.searchmovieapp.RetrofitProvider;
 import com.example.rent.searchmovieapp.details.gallery.GalleryActivity;
 
 import org.w3c.dom.Text;
+
+import javax.inject.Inject;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -23,6 +26,7 @@ import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
 import nucleus.factory.RequiresPresenter;
 import nucleus.view.NucleusAppCompatActivity;
+import retrofit2.Retrofit;
 
 @RequiresPresenter(DetailPresenter.class)
 public class DetailsActivity extends NucleusAppCompatActivity<DetailPresenter> {
@@ -56,6 +60,9 @@ public class DetailsActivity extends NucleusAppCompatActivity<DetailPresenter> {
     @BindView(R.id.country)
     TextView country;
 
+    @Inject
+    Retrofit retrofit;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -63,8 +70,15 @@ public class DetailsActivity extends NucleusAppCompatActivity<DetailPresenter> {
         ButterKnife.bind(this);
         String imdbId = getIntent().getStringExtra(ID_KEY);
 
-        RetrofitProvider retrofitProvider = (RetrofitProvider) getApplication();  //pobieramy konfiguracje retrofit z application
-        getPresenter().setRetrofit(retrofitProvider.privideRetrofit());
+        //niepotrzebne przy daggerze
+//        RetrofitProvider retrofitProvider = (RetrofitProvider) getApplication();  //pobieramy konfiguracje retrofit z application
+//        getPresenter().setRetrofit(retrofitProvider.privideRetrofit());
+
+        //dagger
+        MovieApplication movieApplication = (MovieApplication) getApplication();
+        movieApplication.getAppComponent().inject(this);
+        getPresenter().setRetrofit(retrofit);
+        //dagger
 
         subscribe = getPresenter().loadDetail(imdbId)
                 .subscribeOn(Schedulers.io())
